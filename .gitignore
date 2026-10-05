@@ -1,0 +1,29 @@
+# Secrets / local credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+known_hosts.local
+
+# Diagnostic output that may contain sensitive infrastructure data
+captures/
+logs/
+outputs/
+*.pcap
+*.pcapng
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
