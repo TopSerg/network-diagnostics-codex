@@ -126,3 +126,23 @@ collect_diagnostics(device, profile)
 ```
 
 Skill при этом останется workflow-слоем: он будет решать, что проверять и в каком порядке, а MCP — безопасно выполнять действия.
+
+## Mikenopa agent integration (new)
+
+Added a minimal **read-only** knowledge retrieval adapter and a Codex integration plan for a private `C:\gvn\Mikenopa` worktree:
+
+- [Ready-to-paste local Codex prompt](docs/CODEX_LOCAL_PROMPT.md)
+- [Architecture and security boundaries](docs/ARCHITECTURE.md)
+- [Mikenopa triage skill](.agents/skills/mikenopa-network/SKILL.md)
+- [KB search adapter](agent_tools/kb_search.py)
+
+The private `network_engineer_agent_knowledge_base_2026-10-08.zip` and operational Mikenopa scripts, exports and credentials are **not** included in this public repository.
+
+To test locally after unpacking that ZIP into `knowledge/network_agent_kb/`:
+
+```powershell
+python agent_tools/kb_search.py "Ruckus ICX VLAN" --top 5
+python -m unittest discover -s agent_tools -p "test_*.py" -v
+```
+
+To use Codex in `C:\gvn\Mikenopa`, install the full `skills/network-diagnostics` directory at `.agents/skills/network-diagnostics`, the new `.agents/skills/mikenopa-network`, and `agent_tools/kb_search.py` there; merge root `AGENTS.md`, then follow the prompt linked above. No network writes are implemented by this patch.

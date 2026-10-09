@@ -27,3 +27,27 @@ venv/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Private local worktree / knowledge and sensitive operational data
+/knowledge/
+/network_agent_kb/
+/Hotels/
+/Knowledge Base/
+/Ru Dc/
+/WLC/
+/data/
+/browser_profiles/
+/.chrome-meraki/
+/.cache/
+/.tmp_snmp/
+*.db
+*.sqlite
+*.sqlite3
+*.zip
+*.7z
+*.mobaconf
+*.pcapng
+*.keytab
+*.kdbx
+*.p12
+*.pfx
