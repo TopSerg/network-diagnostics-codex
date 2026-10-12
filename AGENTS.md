@@ -2,6 +2,24 @@
 
 This repository is intended for Codex-assisted network diagnostics.
 
+## Choose the workflow first
+
+Distinguish an instruction to **run an existing operational program** from a request to diagnose a network, migrate equipment, or develop the offline agent. Do not turn a routine program launch into a new agent integration or a full network investigation.
+
+For requests such as «запусти скрипт перезагрузки», «через Дактелу и тикеты закрыть»:
+
+- Start with [the operational runbook](docs/OPERATIONAL_RUNBOOK.md) and the existing entry point. Read only relevant arguments and known blockers; reuse a prior review when the source has not changed. Do not read the whole README, hotel history, KB or vendor manuals for a routine supported operation.
+- Prefer existing programs and `mikenopa_utils`. One preflight, one scoped run, one recovery/status check is the default. Do not reimplement the workflow in a series of temporary scripts. If a real blocker needs code, prefer one narrow fix or reusable wrapper; preserve existing functions and defaults unless changing them is authorized.
+- A direct request to reboot authorizes the requested reboots. «И тикеты закрыть» authorizes resolution of the corresponding successful tickets. Do not ask for that permission again. It does not authorize unrelated configuration changes or bulk PoE cycling.
+- Use the confirmed Daktela queue/ticket IDs to discover the hotel/AP; do not ask for a hotel already available there. Exclude unrelated tickets and ambiguous numbers in IP addresses. Room fallback requires an approved mapping or explicit user authorization; retain and report that authorization without asking again.
+- Reuse the authenticated browser. If the user says not to leave XNet, preserve its tab and session. Do not call `quit()` or restart that browser to switch phases. Attach through existing reviewed tooling or use another tab; ask for login only after confirming an actual login page, not merely a loading timeout.
+- Investigate only the concrete failing step. Check XNet filters, primary/optional addresses and documented URLs before claiming a controller is missing. Continue other independent targets when one is blocked. Never repeat an uncertain reboot to test another path.
+- Keep one operation journal with target, action, recovery, ticket status and any unknown result. Prefer concise, credential-free tool output. Routine launches need a short result, not a migration report, many snapshots or a new evidence framework.
+
+SSH/TLS identity checks, privacy, truthful reporting and verification before resolution still apply. A known security defect in a legacy program is a **specific blocker**, not a reason to redesign the entire agent; address it narrowly and never run an insecure path just to save tokens.
+
+The integrated `agent/` and its tests remain offline/read-only. Separately authorized operational programs follow the scoped workflow above; this does not enable live connectors or state changes through the offline agent API.
+
 ## Safety contract
 
 1. Start with read-only diagnostics.
@@ -9,7 +27,7 @@ This repository is intended for Codex-assisted network diagnostics.
 3. Never save configuration automatically.
 4. Never reboot, reload, erase, format, reset, upgrade, downgrade, or factory-reset a device without explicit approval.
 5. Never disable security controls, AAA, logging, spanning tree, routing protocols, firewall rules, VPN policy, or interfaces merely to "test" a theory.
-6. Do not run destructive or high-impact commands such as `reload`, `reboot`, `write erase`, `erase startup-config`, `format`, `factory-reset`, `delete`, or equivalents.
+6. Outside a separately authorized and reviewed operational procedure, do not run destructive or high-impact commands such as `reload`, `reboot`, `write erase`, `erase startup-config`, `format`, `factory-reset`, `delete`, or equivalents.
 7. Treat packet captures, debug commands, table dumps, and session dumps as potentially expensive. Scope and time-bound them.
 8. Do not place passwords, private keys, API tokens, SNMP communities, or enable secrets in this repository, prompts, logs, or generated reports.
 9. Prefer SSH keys via `ssh-agent` and aliases in `~/.ssh/config`. Respect normal host-key verification.

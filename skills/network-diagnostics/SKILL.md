@@ -7,6 +7,8 @@ description: Diagnose switches, routers, firewalls, gateways, VPNs, VLANs, DHCP,
 
 Use this skill for infrastructure troubleshooting where the goal is to understand a fault from device state and command output.
 
+A request to launch a ready-made operational program is routed through `AGENTS.md` and `docs/OPERATIONAL_RUNBOOK.md`. Do not expand it into the full procedure below. Apply only the relevant diagnostic step when the program reports a concrete failure; keep already granted reboot/ticket-closure authorization and the authenticated browser session.
+
 Follow the repository `AGENTS.md` safety contract at all times.
 
 ## 1. Convert the request into a diagnostic target

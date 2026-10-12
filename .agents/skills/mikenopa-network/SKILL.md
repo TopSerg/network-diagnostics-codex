@@ -7,6 +7,8 @@ description: Use for hotel network triage with local XNet inventory, corporate G
 
 This skill complements the existing `network-diagnostics` vendor skill.
 
+For an instruction to run an existing program (including Daktela AP reboot/closure), use `AGENTS.md` → `docs/OPERATIONAL_RUNBOOK.md` first. Do not apply the full triage/KB workflow below unless a concrete operational failure requires it. Reuse the program and authenticated browser; avoid recreating its workflow in temporary scripts. Offline agent restrictions do not cancel separately authorized operational work.
+
 1. Resolve an exact **site -> device -> AP/interface** identity from authorized local inventory. Record source and freshness. Never assume an adjacent room/AP is the target.
 2. Search the **private local** KB before recommending a change:
    `python agent_tools/kb_search.py "<vendor> <symptom>" --top 6`.
