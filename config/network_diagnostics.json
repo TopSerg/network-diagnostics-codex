@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "auth_order": ["xnet", "radius"],
+  "radius": {
+    "credential_target": "Mikenopa/network-diagnostics/RADIUS",
+    "username_env": "MIKENOPA_RADIUS_USERNAME",
+    "password_env": "MIKENOPA_RADIUS_PASSWORD"
+  },
+  "timeouts": {"connect": 8, "banner": 10, "auth": 12},
+  "workers": 6
+}

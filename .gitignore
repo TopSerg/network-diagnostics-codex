@@ -51,3 +51,24 @@ Thumbs.db
 *.kdbx
 *.p12
 *.pfx
+
+# Local operational artifacts
+agent_reports/
+private/
+.local/
+docs/LOCAL_*
+*.rsc
+*.backup
+*.crt
+*.der
+*.xlsx
+*.xls
+*.csv
+*.log
+*.err
+*.out
+*.html
+*.har
+*.db
+*.sqlite*
+.playwright*/

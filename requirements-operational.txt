@@ -1,0 +1,3 @@
+-r requirements-agent.txt
+paramiko>=3.5,<5
+cryptography>=44,<48

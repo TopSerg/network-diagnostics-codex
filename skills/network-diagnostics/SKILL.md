@@ -11,6 +11,16 @@ A request to launch a ready-made operational program is routed through `AGENTS.m
 
 Follow the repository `AGENTS.md` safety contract at all times.
 
+## Existing operational programs first
+
+For RU DC migration use `docs/RU_DC_MIGRATION.md` and the separate `tools/ru_dc_vpn.py` operational runner. For Cisco diagnostics, use the vendor references and an authorized reviewed collector; the private workspace collector is not distributed here. The offline `agent/` stays offline.
+
+Reuse reviewed operational programs. The upstream `scripts/ssh_readonly.py --execute` is not the agent executor and must not be used through the offline tool API.
+
+Authentication uses `mikenopa_utils/network_ssh.py` and `config/network_diagnostics.json`: the selected device's local XNet credentials first, authorized RADIUS second only on explicit authentication rejection. A timeout, host-key error, partial authentication or command/identity failure stops that path. Record source/status without credentials. Missing secrets require the documented secure provider; never paste them into code or command arguments. This does not enable live access in the offline `agent/`.
+
+Windows automated PTY input has dropped `@` in real operations. Prefer inventory/Credential Manager/environment credentials. For necessary hidden input through `exec`/`write_stdin`, use `--prompt-input-encoding hex` (ASA/RouterOS also accepts `--password-input-encoding hex`) and the shared `mikenopa_utils/credential_input.py`. The prompted RADIUS username also uses hex in that mode. Hex values remain secret and belong only in masked stdin, never arguments/files/reports. Invalid encoding or unavailable echo control stops before authentication. Do not report a damaged input as a wrong password or bypass identity/AAA checks to compensate. The offline agent receives no credentials.
+
 ## 1. Convert the request into a diagnostic target
 
 Extract whatever is already known:

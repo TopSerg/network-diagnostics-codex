@@ -1,39 +1,22 @@
-# Mikenopa network agent: integration architecture
-
-**Current status:** this public repository contains a vendor diagnostic skill, a Mikenopa triage skill, security instructions and a tested **read-only KB search adapter**. It does not yet have a connected XNet/Daktela tool service, a safe executor for network changes, or a background agent.
+# Архитектура
 
 ```text
-Codex (start in C:\gvn\Mikenopa)
-  AGENTS.md
-  .agents/skills/network-diagnostics/  <- copy complete directory from this repo
-  .agents/skills/mikenopa-network/    <- copy from this repo
-  agent_tools/kb_search.py            <- copy from this repo
-  knowledge/network_agent_kb/         <- PRIVATE ZIP: extract locally, never commit
-  mikenopa_utils/, tools/, tests/     <- existing local project
-           |
-  Proposed private adapter layer:
-  inventory lookup -> typed read-only checks -> evidence/report
-           |
-        XNet / SSH / WLC / Daktela
+Инженер + Codex + AGENTS.md + .agents/skills/
+  ├─ python -m agent                       [offline / credential-free]
+  │    ├─ local XLSX / saved HTML -> exact typed identity
+  │    ├─ exact ReadGrant -> supported typed checks
+  │    ├─ FixtureDiagnostics -> observations with source/time
+  │    └─ local KB -> sanitized evidence journal + report
+  └─ tools/ru_dc_vpn.py                     [separate authorized operation]
+       ├─ explicit local inventory, output directory, existing trust
+       ├─ network_ssh.py + credential_input.py
+       └─ ASA / RouterOS commands, SFTP, SCEP placeholder, public cert extraction
 ```
 
-## Engineering contracts
+`agent/` не импортирует операционный SSH транспорт или runner, не получает credentials и не имеет произвольного shell/SSH tool. Смена VPN/VLAN/NAT, reboot, save, ticket resolution и publishing недоступны в typed API даже с approval flag.
 
-- Codex plans; typed, allowlisted tools execute. A regex-based SSH CLI filter is **not** a security boundary.
-- Device-side read-only rights, SSH host-key checks and valid TLS trust are mandatory for unattended inspection.
-- Local KB is a dated source, **not a live configuration**. Preference: current approved procedure / device evidence > applicable dated wiki > historic cases.
-- Any state-changing operation needs verified target, scoped approval, prechecks, command plan/diff, rollback, operation ID, postchecks and an unknown-state stop.
-- Daktela ticket resolution is a separate business operation, only after verified restoration and approved service-desk rules.
+Операционный runner — существующий инструмент инженера, выполняющий переданные команды. Его полномочия задаёт SSH-учётная запись. Разрешение на работу, проверка применимости CLI/identity, согласованный change plan, резервный доступ, откат и end-to-end проверка выполняются в рамках отдельной операции. Это не подключённый автономный backend офлайн-агента.
 
-## Milestones in the private Mikenopa worktree
+`agent/inventory.py` использует только `DeviceRow` и чистый локальный XNet HTML parser, обходя приватный connected package initializer. Browser/XNet clients не поставляются.
 
-1. Merge root AGENTS.md, install full skills and extract the KB locally.
-2. Adapt existing `mikenopa_utils` inventory and WLC readers into typed **read-only** tools.
-3. Add source/timestamp metadata and distinguish device, AP, room and interface ambiguity.
-4. Add offline fixtures, unit tests, op IDs and a sanitized evidence journal.
-5. Pilot read-only network diagnostics on approved test equipment.
-6. Only then add an approval-gated change executor, agent runner, and monitoring/Telegram triggers.
-
-## Never publish
-
-Knowledge DB/ZIP, `Hotels/`, `Knowledge Base/`, `Ru Dc/`, `logs/`, `.cache/`, browser profiles, MobaXterm exports, device inventory, config backups, credentials, keys or captures. A `.gitignore` does **not** remove secrets inside source files or existing Git history. Review an explicit staging manifest and run a secrets scan before any push.
+Для добавления live typed backend потребуется отдельно выбранный pilot, проверенные device-side read-only права, ограниченный типизированный транспорт и review. Запуск операционного runner этого не реализует.

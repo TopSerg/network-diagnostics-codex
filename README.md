@@ -1,148 +1,71 @@
-# Codex Network Diagnostics Skill
+# Mikenopa: сетевой агент и перенос на RU DC
 
-Готовый репозиторий для повторяемой SSH-диагностики сетевой инфраструктуры через Codex.
+Репозиторий для работы инженера с Codex: локальный анализ сетевых случаев, поиск в разрешённой базе знаний и отдельная операционная программа для переноса ASA / MikroTik RouterOS на RU DC.
 
-Он разделён на два уровня:
+**Для перевода на RU DC начните с [пошаговой инструкции](docs/RU_DC_MIGRATION.md)**. Там есть необходимые входные данные, команды запуска, SCEP, подготовка переключения, проверки и откат.
 
-- `AGENTS.md` — постоянные правила безопасности и стиль работы Codex в этом репозитории.
-- `skills/network-diagnostics/` — workflow диагностики и справочники CLI по вендорам.
+## Скачать и запустить
 
-## Структура
-
-```text
-network-diagnostics-codex/
-├── AGENTS.md
-├── README.md
-├── .gitignore
-└── skills/
-    └── network-diagnostics/
-        ├── SKILL.md
-        ├── references/
-        │   ├── common-workflow.md
-        │   ├── cisco-asa.md
-        │   ├── cisco-ios-catalyst.md
-        │   ├── ruckus-icx.md
-        │   ├── aruba-cx.md
-        │   ├── fortigate.md
-        │   ├── mikrotik-routeros.md
-        │   ├── huawei-vrp.md
-        │   ├── ruijie.md
-        │   └── eltex.md
-        ├── scripts/
-        │   └── ssh_readonly.py
-        └── assets/
-            └── report-template.md
-```
-
-## Как использовать
-
-### Вариант 1 — как репозиторий Codex
-
-Открой эту папку как рабочий репозиторий Codex. `AGENTS.md` задаёт постоянные правила, а skill можно вызывать явно:
-
-```text
-Use the network-diagnostics skill.
-Diagnose why client 3C-52-82-37-6D-AC has no connectivity in VLAN 215.
-```
-
-Или просто сформулируй сетевую задачу — описание skill рассчитано на автоматический выбор при SSH/VLAN/DHCP/routing/VPN/Wi-Fi диагностике.
-
-### Вариант 2 — установить skill отдельно
-
-Скопируй каталог:
-
-```text
-skills/network-diagnostics
-```
-
-в каталог skills/capabilities, который доступен твоему Codex/agent runtime.
-
-## SSH: рекомендуемая схема
-
-Не храни пароли в skill и репозитории. Используй системный OpenSSH, `ssh-agent` и алиасы.
-
-Пример `~/.ssh/config`:
-
-```sshconfig
-Host imperial-asa
-    HostName 10.64.112.129
-    User admin
-    IdentityFile ~/.ssh/mikenopa
-
-Host astana-idf14
-    HostName 10.20.14.11
-    User admin
-    IdentityFile ~/.ssh/mikenopa
-    ProxyJump company-jump
-```
-
-После этого Codex может работать с понятными именами:
-
-```bash
-ssh imperial-asa
-ssh astana-idf14
-```
-
-Ключи лучше держать в `ssh-agent`; приватные ключи и секреты никогда не коммитить.
-
-## Безопасный helper
-
-`scripts/ssh_readonly.py` — небольшой wrapper над системным `ssh`. Он блокирует очевидно опасные команды и по умолчанию только показывает, что собирается выполнить.
-
-Пример:
-
-```bash
-python skills/network-diagnostics/scripts/ssh_readonly.py imperial-asa "show route"
-```
-
-Для выполнения:
-
-```bash
-python skills/network-diagnostics/scripts/ssh_readonly.py --execute imperial-asa "show route"
-```
-
-Это дополнительный предохранитель, а не security boundary: окончательная безопасность всё равно зависит от прав SSH-учётной записи и ACL на оборудовании.
-
-## Что skill умеет
-
-- идентифицировать оборудование и выбрать соответствующий CLI;
-- искать MAC и определять порт/VLAN;
-- проверять STP/LAG/LACP/LLDP;
-- проверять ARP, SVI/VE, маршрутизацию и FHRP;
-- проверять DHCP/DNS/NAT/ACL/firewall/VPN;
-- проходить путь client → AP → access → core → firewall/gateway → WAN;
-- собирать доказательства и отделять факт от гипотезы;
-- предлагать fix + rollback без самовольного применения изменений.
-
-## Что стоит добавить следующим этапом
-
-Для большого парка оборудования имеет смысл вынести inventory и выполнение SSH в отдельный MCP/tool слой, например:
-
-```text
-get_device(site, hostname)
-run_show_command(device, command)
-find_mac(site, mac)
-collect_diagnostics(device, profile)
-```
-
-Skill при этом останется workflow-слоем: он будет решать, что проверять и в каком порядке, а MCP — безопасно выполнять действия.
-
-## Mikenopa agent integration (new)
-
-Added a minimal **read-only** knowledge retrieval adapter and a Codex integration plan for a private `C:\gvn\Mikenopa` worktree:
-
-- [Ready-to-paste local Codex prompt](docs/CODEX_LOCAL_PROMPT.md)
-- [Architecture and security boundaries](docs/ARCHITECTURE.md)
-- [Mikenopa triage skill](.agents/skills/mikenopa-network/SKILL.md)
-- [KB search adapter](agent_tools/kb_search.py)
-
-The private `network_engineer_agent_knowledge_base_2026-10-08.zip` and operational Mikenopa scripts, exports and credentials are **not** included in this public repository.
-
-To test locally after unpacking that ZIP into `knowledge/network_agent_kb/`:
+Нужен Python 3.12 или новее. Проверка релиза выполняется на Python 3.12 и 3.14.
 
 ```powershell
-python agent_tools/kb_search.py "Ruckus ICX VLAN" --top 5
-python -m unittest discover -s agent_tools -p "test_*.py" -v
+git clone https://github.com/TopSerg/network-diagnostics-codex.git
+cd network-diagnostics-codex
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements-agent.txt
+.venv\Scripts\python.exe -m agent --demo
+.venv\Scripts\python.exe -m agent_tools.offline_tests
 ```
 
-To use Codex in `C:\gvn\Mikenopa`, install the full `skills/network-diagnostics` directory at `.agents/skills/network-diagnostics`, the new `.agents/skills/mikenopa-network`, and `agent_tools/kb_search.py` there; merge root `AGENTS.md`, then follow the prompt linked above. No network writes are implemented by this patch.
+На Linux/macOS используйте `.venv/bin/python` вместо `.venv\Scripts\python.exe`. Демонстрация работает без доступа к оборудованию и закрытой KB; отчёт появится в `agent_reports/`.
+
+Откройте скачанную папку в Codex. Правила находятся в `AGENTS.md`, оба проектных навыка — в `.agents/skills/`. Пример первого запроса:
+
+> Используй mikenopa-network и network-diagnostics. Запусти офлайн-демонстрацию, объясни отчёт и ограничения. Не подключайся к оборудованию.
+
+## Перевод на RU DC
+
+```powershell
+.venv\Scripts\python.exe -m pip install -r requirements-operational.txt
+.venv\Scripts\python.exe tools/ru_dc_vpn.py --help
+.venv\Scripts\python.exe -m agent_tools.offline_tests --operational
+```
+
+`tools/ru_dc_vpn.py` — обезличенная версия существующей операционной программы. Она принимает явные пути к локальному inventory, каталогу операции и существующему trust-файлу, поддерживает ASA CLI, RouterOS, передачу файлов, резервный экспорт и скрытый ввод SCEP challenge. Новые проверки SSH-ключей в этом релизе не добавлялись; имеющийся механизм перенесён вместе с программой.
+
+Пример запроса инженера:
+
+> Используй docs/RU_DC_MIGRATION.md. Подготовь перевод выбранного объекта на RU DC. Данные объекта, inventory и каталог операции предоставлю локально. Сначала проверь актуальное состояние, подготовь точный план команд, откат и критерии приёмки. Уже выполненные этапы повторно не запускай.
+
+Операционная программа запускается отдельно от `python -m agent`; она выполняет переданные команды, включая изменения, и требует проверки плана для конкретного устройства. Офлайн API агента её не импортирует и не запускает. Автоматического универсального переноса одной командой нет.
+
+## Что умеет офлайн-агент
+
+- Разбирать локальные XLSX и сохранённый HTML XNet, возвращая записи устройств без паролей.
+- Находить точное устройство и связь комната → AP без подстановки соседних комнат.
+- Выбирать типизированные проверки connectivity / VLAN / VPN / Wi-Fi для поддерживаемых моделей и версий.
+- Анализировать явно заданные fixture-наблюдения и сохранять происхождение, время и хеши доказательств.
+- Искать в локальной SQLite FTS5 KB, если инженер получил её отдельно разрешённым способом.
+
+Для локального случая: `python -m agent --case <private-case.json>`. Для просмотра входных параметров: `python -m agent --help`. Установленный backend — **fixtures only**: он не собирает текущее состояние оборудования по SSH/API.
+
+## Закрытые данные и доступы
+
+Inventory, корпоративная KB, адреса RU DC, CA, сертификаты, SCEP challenge, пароли и браузерные сессии в репозиторий не включены. Их нужно получить по внутреннему разрешённому каналу. Сохраните данные вне Git, например в игнорируемом `private/`. Без них можно запустить демонстрацию и тесты, но нельзя выполнить перенос реального объекта.
+
+```powershell
+python agent_tools/kb_search.py "SCEP" --db <local-knowledge.db> --top 6 --metadata-only
+```
+
+Явно выбранная отсутствующая или некорректная БД вызывает ошибку; другой корпус автоматически не подставляется. Результаты поиска остаются локальными.
+
+## Документация
+
+- [Перенос на RU DC](docs/RU_DC_MIGRATION.md).
+- [Операционные точки входа](docs/OPERATIONAL_RUNBOOK.md).
+- [Готовность и ограничения](docs/AGENT_STATUS.md).
+- [Архитектура](docs/ARCHITECTURE.md).
+- [Запросы для Codex](docs/CODEX_LOCAL_PROMPT.md).
+- [Состав и проверка публикации](docs/PUBLICATION_MANIFEST.md).
+
+`skills/network-diagnostics/` сохранён как исходный комплект навыка; установленная проектная копия находится в `.agents/skills/network-diagnostics/`. Входящий upstream SSH helper не является исполнителем агента; режим `--execute` через офлайн API запрещён.

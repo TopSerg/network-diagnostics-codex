@@ -7,6 +7,10 @@ description: Use for hotel network triage with local XNet inventory, corporate G
 
 This skill complements the existing `network-diagnostics` vendor skill.
 
+For operational device login, use the target's local XNet credentials, then the authorized RADIUS account on authentication rejection, through `mikenopa_utils/network_ssh.py` and `config/network_diagnostics.json`. Do not treat a timeout/key mismatch as a reason to send another account. Passwords stay in the secure provider, outside source/configuration/reports.
+
+For RU DC migration use `docs/RU_DC_MIGRATION.md` and the separate `tools/ru_dc_vpn.py` operational runner. For Cisco diagnostics, use the vendor references and an authorized reviewed collector; the private workspace collector is not distributed here. The offline `agent/` stays offline.
+
 For an instruction to run an existing program (including Daktela AP reboot/closure), use `AGENTS.md` → `docs/OPERATIONAL_RUNBOOK.md` first. Do not apply the full triage/KB workflow below unless a concrete operational failure requires it. Reuse the program and authenticated browser; avoid recreating its workflow in temporary scripts. Offline agent restrictions do not cancel separately authorized operational work.
 
 1. Resolve an exact **site -> device -> AP/interface** identity from authorized local inventory. Record source and freshness. Never assume an adjacent room/AP is the target.

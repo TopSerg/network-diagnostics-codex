@@ -7,6 +7,7 @@ Search snippets can contain private information; keep results in the local workt
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -14,14 +15,23 @@ import re
 import sqlite3
 import sys
 
+try:
+    from agent_tools.redaction import redact
+except ModuleNotFoundError:
+    from redaction import redact
+
 SOURCES = ('wiki', 'attachment', 'chatgpt', 'codex')
 
 
 def resolve_db(explicit: str | None) -> Path:
     root = Path(__file__).resolve().parent.parent
+    selected = explicit or os.environ.get('MIKENOPA_KB_DB')
+    if selected:
+        path = Path(selected).expanduser()
+        if not path.is_file():
+            raise FileNotFoundError('The explicitly selected knowledge database is unavailable')
+        return path.resolve()
     candidates = [
-        explicit,
-        os.environ.get('MIKENOPA_KB_DB'),
         str(root / 'knowledge' / 'network_agent_kb' / 'knowledge.db'),
         str(root / 'network_agent_kb' / 'knowledge.db'),
     ]
@@ -39,6 +49,10 @@ def tokens_from(query: str) -> list[str]:
 
 
 def search(con: sqlite3.Connection, query: str, top: int, source: str | None) -> dict:
+    if isinstance(top, bool) or not isinstance(top, int) or not 1 <= top <= 25:
+        raise ValueError('top must be 1..25')
+    if source is not None and source not in SOURCES:
+        raise ValueError('Unknown source filter')
     tokens = tokens_from(query)
     if not tokens:
         raise ValueError('Search query does not contain terms')
@@ -76,8 +90,9 @@ def search(con: sqlite3.Connection, query: str, top: int, source: str | None) ->
                     'date', 'vendors', 'categories', 'path', 'position', 'snippet')})
         if len(out) >= top:
             break
-    return {'query': query, 'match_mode': mode, 'results': out,
+    return redact({'query': query, 'match_mode': mode, 'results': out,
             'notice': 'Historic results are not proof of current network state.'}
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -86,14 +101,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--db', help='Path to locally extracted private knowledge.db')
     parser.add_argument('--top', type=int, default=8)
     parser.add_argument('--source', choices=SOURCES)
+    parser.add_argument('--metadata-only', action='store_true', help='Omit snippets from output')
     args = parser.parse_args(argv)
     if not 1 <= args.top <= 25:
         parser.error('--top must be 1..25')
     try:
         path = resolve_db(args.db)
-        with sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, timeout=5) as con:
+        with closing(sqlite3.connect(path.as_uri() + '?mode=ro', uri=True, timeout=5)) as con:
             con.row_factory = sqlite3.Row
+            con.execute('PRAGMA query_only=ON')
             result = search(con, args.query, args.top, args.source)
+        if args.metadata_only:
+            for item in result['results']:
+                item.pop('snippet', None)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (sqlite3.Error, ValueError, OSError) as exc:

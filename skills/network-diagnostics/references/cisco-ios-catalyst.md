@@ -2,6 +2,12 @@
 
 Command availability varies by platform and release.
 
+## Workspace entry point
+
+Use an existing reviewed operational collector when available in the selected private workspace. Private Cisco collectors and site wrappers are not distributed in this release. The references below describe read-only CLI; verify applicability to the exact model/firmware before selecting commands. Do not invent an incident-specific SSH runner or bypass the offline agent boundary.
+
+Where the operational policy applies, login is local XNet credentials then authorized RADIUS on authentication rejection through `mikenopa_utils/network_ssh.py` and `config/network_diagnostics.json`. Never copy credentials into source or reports.
+
 ## Identification
 
 ```text
